@@ -1,0 +1,9 @@
+*json
+*vcxproj
+*vcxproj.filters
+*vcxproj.user
+*.exe
+.vs
+.vscode
+Debug
+fake_valarray.sln
