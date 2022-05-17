@@ -1,10 +1,11 @@
+template<typename T>
+class Mask_array;
 
 template <typename T>
 class Unknow_node : public Exp_tree<T> {
    public:
-    using typename Exp_tree<T>::variable_table;
-    UNKNOW_KEY_T name;
-    Unknow_node(UNKNOW_KEY_T _name) : name(_name) {}
-    T eval(variable_table &vars) { return vars[name]; }
-    void del() { delete this; }
+    Mask_array<T>& marray;
+    Unknow_node(Mask_array<T>& _marray) : marray(_marray) {}
+    T eval(size_t pos) { return marray.data[pos]; }
+    void del() {delete this; }
 };

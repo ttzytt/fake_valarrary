@@ -1,46 +1,64 @@
-template <typename T, size_t SZ>
+template <typename T>
 class Mask_array {
+
+
    public:
-    static UNKNOW_KEY_T nex_id;
-    Mask_array() {
-        id = ++nex_id;
-        memset(data, 0, sizeof(data));
-        memset(mask, 0, sizeof(mask));
-    }
-    Mask_array(std::initializer_list<T> init) {
-        id = ++nex_id;
-        memset(mask, 0, sizeof(mask));
-        int idx = 0;
-        for (auto cur : init) {
-            data[idx++] = cur;
-        }
-    }
+    // friend class Exp_tree<T>;
+    friend class Unknow_node<T>;
     //------------------重载方括号------------------
-    Mask_array<T, SZ> &operator[](Cond_node<T> cond) {
-        for (int i = 0; i < SZ; i++) {
-            std::map<UNKNOW_KEY_T, T> temp;
-            temp[id] = data[i];
-            if (cond.eval(temp)) {
-                mask[i] = true;
-            }
+    Mask_array<T> &operator[](Cond_node<T> cond) {
+        with_mask = true;
+        for (size_t i = 0; i < data.size(); i++) {
+            mask[i] = cond.eval(i);
         }
         cond.del();
         return *this;
     }
-    Mask_array<T, SZ> &operator=(T replace_val) {
-        for (int i = 0; i < SZ; i++) {
+
+    inline T operator[](size_t pos){
+        return data[pos];
+    }
+
+    Mask_array<T> &operator=(T replace_val) {
+        for (size_t i = 0; i < data.size(); i++) {
             if (mask[i]) {
                 data[i] = replace_val;
             }
         }
-        memset(mask, 0, sizeof(mask));
+        std::fill(mask.begin(), mask.end(), false);
         return *this;
     }
 
-    //    private:
-    T data[SZ];
-    UNKNOW_KEY_T id;
-    bool mask[SZ];
+    Mask_array<T>(std::initializer_list<T> init) {
+        data.clear(); mask.clear();
+        for (auto cur : init) {
+            data.push_back(cur);
+            mask.push_back(false);
+        }
+    }
+
+    Mask_array<T> &operator=(std::vector<T> &vec) {
+        if (!with_mask) {
+            data = vec;
+            mask = std::vector<bool>(vec.size(), false);
+        } else {
+            for (size_t i = 0; i < data.size() && i < vec.size(); i++) {
+                if (mask[i]) data[i] = vec[i];
+            }
+        }
+        return *this;
+    }
+
+    Mask_array<T> &operator=(Exp_tree<T> &tr){
+        for(size_t i = 0; i < data.size(); i++){
+            if(mask[i]) data[i] = tr.eval(i);
+        }
+    }
+
+    operator Exp_tree<T>() { return *(new Unknow_node<T>(*this));}
+
+   private:
+    bool with_mask = false;
+    std::vector<T>    data;
+    std::vector<bool> mask;
 };
-template <typename T, size_t SZ>
-UNKNOW_KEY_T Mask_array<T, SZ>::nex_id = 0;
